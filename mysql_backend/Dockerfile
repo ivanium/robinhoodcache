@@ -4,7 +4,7 @@
 ############################################################
 
 # Set the base image to Ubuntu
-FROM mysql 
+FROM mysql:debian
 
 # File Author / Maintainer
 MAINTAINER Ben Berg
