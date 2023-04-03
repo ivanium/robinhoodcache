@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"net/http"
 	"encoding/json"
+	"math"
 	"time"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -107,7 +108,7 @@ func main() {
 			//		fmt.Println(container.Names,container.Created,container.HostConfig)
 			stats, err := cli.ContainerStats(ctx, container.ID, false)
 			Check(err)
-            /*			
+            /*
 			rr := stats.Body
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(rr)
@@ -119,7 +120,7 @@ func main() {
 			var containerStats StatsJson
 			err = decoder.Decode(&containerStats)
 			Check(err)
-			
+
 			//parse cpu
 			system_delta := containerStats.CpuStats.SystemUsage - containerStats.PreCpuStats.SystemUsage
 			var cpu_delta_sum float64 = 0
@@ -129,9 +130,15 @@ func main() {
 			    cpu_delta_sum += cpu_delta
 			}
 			totalCPU := cpu_delta_sum / system_delta
+			if math.IsNaN(totalCPU) {
+				totalCPU = 0
+			}
 
 			// parse mem
 			maxMem := containerStats.MemStats.MaxUsage/containerStats.MemStats.Limit
+			if (math.IsNaN(maxMem)) {
+				maxMem = 0
+			}
 
 			// parse net
 			var sumRxB float64 = 0
@@ -144,7 +151,7 @@ func main() {
 			    sumTxB += netstat.TxBytes
 			    sumTxD += netstat.TxDropped
 			}
-            
+
             // convert net bw into per second
 			var rxB float64 = 0
 			var rxD float64 = 0
@@ -156,6 +163,12 @@ func main() {
                 rxD = float64(sumRxD - prevNetEntry.RxDropped)/curDur
                 txB = float64(sumTxB - prevNetEntry.TxBytes)/curDur
                 txD = float64(sumTxD - prevNetEntry.TxDropped)/curDur
+			}
+			if (curDur == 0) {
+				rxB = 0
+				rxD = 0
+				txB = 0
+				txD = 0
 			}
 			prevnet[containerStats.Name] = net{sumRxB, sumRxD, sumTxB, sumTxD,}
 
@@ -179,6 +192,11 @@ func main() {
                 readiops = float64(sumReadIops - preventry.readiops)/curDur
                 writeiops = float64(sumWriteIops - preventry.writeiops)/curDur
 			}
+			if (curDur == 0) {
+				readiops = 0
+				writeiops = 0
+			}
+
 			previo[containerStats.Name] = totaliops{sumReadIops, sumWriteIops, }
 
 			rs[containerStats.Name] = Result{
