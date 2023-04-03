@@ -7,10 +7,10 @@ export REPO=
 export MYSQL_DATA_URL=
 
 # the URL of the trace data
-export TRACE_URL="https://github.com/dasebe/robinhoodcache/blob/master/tracegen/trace.tar.gz?raw=true"
+export TRACE_URL="https://github.com/ivanium/robinhoodcache/blob/master/tracegen/trace.tar.gz?raw=true"
 
 # the base URL where configs are hosted (default is our example)
-export CONFIG_URL=https://github.com/dasebe/robinhoodcache/raw/master/configs
+export CONFIG_URL=https://github.com/ivanium/robinhoodcache/raw/master/configs
 # config directory basename (default is our example)
 export CONFIG=example_config
 
