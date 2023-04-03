@@ -19,4 +19,5 @@ RUN go mod init nuapp && go mod tidy && go build -o ../bin/appserver appserver/a
 # EXPOSE 27001-27064
 EXPOSE 80
 
+WORKDIR /nuapp
 CMD ./start.sh
