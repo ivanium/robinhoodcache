@@ -1,8 +1,8 @@
 package subquery
 
 import (
-    sq "shadowcache"
-    st "statquery"
+    sq "nuapp/shadowcache"
+    st "nuapp/statquery"
     "math/rand"
     "database/sql"
     _ "github.com/go-sql-driver/mysql"
@@ -18,7 +18,7 @@ import (
     "bytes"
     "bufio"
     "flag"
-    "math"	
+    "math"
     "strconv"
     "strings"
     "errors"
@@ -451,13 +451,13 @@ func InitSubSystems(cacheip string) {
         switch conf.BackendType {
         case "mysql":
             var dbServer = fmt.Sprintf("%s:%s@tcp(%s)/%s?timeout=10s&writeTimeout=10s&readTimeout=10s", appConf.Db.User, appConf.Db.Passwd, conf.BackendUrl, appConf.Db.Name)
-            
+
             for {
                 var err error
                 var Db * sql.DB
                 Db, err = sql.Open("mysql", dbServer)
                 Check(err)
-                Subs[conf.Name] = 
+                Subs[conf.Name] =
                     Subsystem {
                     CacheClient: memcache.New(conf.CacheAddr...),
                     CacheSema: NewSemaphore(appConf.Cache.MaxConcurrentReqs),
@@ -513,7 +513,7 @@ func InitSubSystems(cacheip string) {
                         fpars = *conf.FbackPars
                     }
                     // make subsystem
-                    Subs[conf.Name] = 
+                    Subs[conf.Name] =
                         Subsystem {
                         CacheClient: memcache.New(conf.CacheAddr...),
                         CacheSema: NewSemaphore(appConf.Cache.MaxConcurrentReqs),
@@ -580,7 +580,7 @@ func ExecuteSubquery(doneDeps chan<- st.Latency, dep string, url []string, cache
     fulfilled := 0
     backQueries := make([]string,0)
 
-    /* 
+    /*
        request from cache
                             */
     var timeHit time.Time
@@ -657,7 +657,7 @@ func ExecuteSubquery(doneDeps chan<- st.Latency, dep string, url []string, cache
                 } else {
                     backQueries = append(backQueries,realkey)
                 }
-                
+
             }
             //fmt.Println("ht",dep,len(cacheQueries),parallelQueries,len(backQueries),int(timeHit.Sub(startTime).Nanoseconds()/1e6))
         } else {
@@ -674,12 +674,12 @@ func ExecuteSubquery(doneDeps chan<- st.Latency, dep string, url []string, cache
         }
     }
 
-    /* 
+    /*
        request from backend
                             */
     var timeMiss time.Time = timeHit
 
-    // check cache which items 
+    // check cache which items
     if !hasError && len(backQueries)>0 {
         // retrieve all not yet fetched
         vals := make(map[string][]byte)
@@ -697,7 +697,7 @@ func ExecuteSubquery(doneDeps chan<- st.Latency, dep string, url []string, cache
                     if !BypassCaches {
                         // store in cache
                         if Subs[dep].CacheSema.Acquire() {
-                            err = Subs[dep].CacheClient.Set(&memcache.Item{Key: dep+":"+key, Value: item}) 
+                            err = Subs[dep].CacheClient.Set(&memcache.Item{Key: dep+":"+key, Value: item})
                             Subs[dep].CacheSema.Release()
                             if err!=nil {
                                 fmt.Println("Cache set error", dep, err)
@@ -723,7 +723,7 @@ func ExecuteSubquery(doneDeps chan<- st.Latency, dep string, url []string, cache
     if !hasError && len(realSize) != fulfilled {
         hasError = true
     }
-    
+
     // calculate query latency
     var hitLatency int64
     var missLatency int64
@@ -741,7 +741,7 @@ func ExecuteSubquery(doneDeps chan<- st.Latency, dep string, url []string, cache
         }
     }
 
-    
+
     // report subquery result to dependency tracking
     doneDeps <- st.Latency{
         Lat: missLatency,
@@ -822,7 +822,7 @@ loopLayers:
                 } else if queryResult.St == 0 && reqState != -1 {
                     reqState = 0
                 }
-                // advance state machine 
+                // advance state machine
                 delete(waiting,queryResult.Tp)
                 if len(waiting) == 0 {
                     break loopWaiting

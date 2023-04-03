@@ -1,27 +1,22 @@
 # Set the base image to Ubuntu
-FROM base/archlinux 
-# File Author / Maintainer
-MAINTAINER Ben Berg
+FROM ubuntu:22.04
 
-ADD mirrorlist /etc/pacman.d/
-
-RUN pacman -Syy
-RUN pacman -S --noconfirm memcached python2 python2-pip git curl go socat net-tools emacs-nox
-
-RUN ln -s /usr/bin/python2 /usr/bin/python
+RUN apt-get update && apt-get install -y memcached python2-dev python-pip git curl golang socat net-tools
 
 ADD ./src /nuapp/src
 ADD ./start.sh /nuapp/start.sh
 
-WORKDIR /nuapp
+RUN ln -s /usr/bin/python2 /usr/bin/python && \
+    curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py && \
+    python2 get-pip.py && \
+    pip install six && \
+    pip install -r /nuapp/src/requirements.txt
 
-# src has to be subdir
-RUN GOPATH=$(pwd) go get appserver
-RUN GOPATH=$(pwd) go build appserver
+WORKDIR /nuapp/src
 
+RUN go mod init nuapp && go mod tidy && go build -o ../bin/appserver appserver/app.go
 
 # EXPOSE 27001-27064
 EXPOSE 80
-RUN pip2 install -r /nuapp/src/requirements.txt
 
 CMD ./start.sh

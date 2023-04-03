@@ -1,7 +1,7 @@
 package main
 
 import (
-	sq "subquery"
+	sq "nuapp/subquery"
 	"net/http"
 	"flag"
 	"fmt"
@@ -85,7 +85,7 @@ func IdHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	flag.Parse()
 
-    
+
     value := os.Getenv("BYPASS")
     if len(value) == 0 {
         sq.BypassCaches = false
